@@ -10,7 +10,6 @@
         Width="900"
         Height="600"
         Title="MyAvaloniaApp">
-        
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -18,21 +17,65 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-   <Grid>
-     <Image Source="avares://MyAvaloniaApp/Assets/factory_plan.png"
-           Stretch="None"/>
- 
-    <Canvas x:Name="canvasFactory" HorizontalAlignment="Left" Height="600" VerticalAlignment="Top" Width="900" >
-      
-        <Grid Height="95" Width="160" Canvas.Left="730" Canvas.Top="500">
-            <Button x:Name="UpButton" Content="Up" HorizontalAlignment="Center" VerticalAlignment="Top" Width="40" FontSize="16" Click="MoveUp_Click" />
-            <Button x:Name="DownButton" Content="Down" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="60" FontSize="16" Click="MoveDown_Click" />
-            <Button x:Name="LeftButton" Content="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Width="50" FontSize="16"  Click="MoveLeft_Click" />
-            <Button x:Name="RightButton" Content="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Width="55" FontSize="16" Click="MoveRight_Click" />
-        </Grid>
-    
-    </Canvas>
-  
-</Grid>
+    <Grid>
+        <Image Source="avares://MyAvaloniaApp/Assets/factory_plan.png"
+               Stretch="None"/>
+
+        <Canvas x:Name="canvasFactory" HorizontalAlignment="Left" Height="600" VerticalAlignment="Top" Width="900">
+
+            <!-- Aktuelle Koordinate des Roboters (rot) -->
+            <TextBlock Text="{Binding PositionText}"
+                       Foreground="Red"
+                       FontSize="16"
+                       Canvas.Left="45"
+                       Canvas.Top="42"/>
+
+            <!-- Der Roboter -->
+            <Image x:Name="RobotImage"
+                   Source="avares://MyAvaloniaApp/Assets/robot_platform.png"
+                   Stretch="Fill"
+                   Width="{Binding RobotWidth}"
+                   Height="{Binding RobotHeight}"
+                   Canvas.Left="{Binding RobotX}"
+                   Canvas.Top="{Binding RobotY}"
+                   RenderTransformOrigin="50%,50%">
+                <Image.RenderTransform>
+                    <RotateTransform Angle="{Binding RobotAngle}"/>
+                </Image.RenderTransform>
+            </Image>
+
+            <!-- Steuerung: 8 Richtungen + 2x Drehen. RepeatButton = Button, der beim Gedrückthalten wiederholt auslöst -->
+            <Grid Canvas.Left="650" Canvas.Top="420" Width="228"
+                  ColumnDefinitions="76,76,76" RowDefinitions="36,36,36,36">
+                <Grid.Styles>
+                    <Style Selector="RepeatButton">
+                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                        <Setter Property="VerticalAlignment" Value="Stretch"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="Margin" Value="2"/>
+                        <Setter Property="FontSize" Value="12"/>
+                        <Setter Property="Delay" Value="300"/>
+                        <Setter Property="Interval" Value="25"/>
+                    </Style>
+                </Grid.Styles>
+
+                <RepeatButton x:Name="UpLeftButton"    Grid.Row="0" Grid.Column="0" Content="Up-Left"    Click="MoveUpLeft_Click"/>
+                <RepeatButton x:Name="UpButton"        Grid.Row="0" Grid.Column="1" Content="Up"         Click="MoveUp_Click"/>
+                <RepeatButton x:Name="UpRightButton"   Grid.Row="0" Grid.Column="2" Content="Up-Right"   Click="MoveUpRight_Click"/>
+
+                <RepeatButton x:Name="LeftButton"      Grid.Row="1" Grid.Column="0" Content="Left"       Click="MoveLeft_Click"/>
+                <RepeatButton x:Name="RightButton"     Grid.Row="1" Grid.Column="2" Content="Right"      Click="MoveRight_Click"/>
+
+                <RepeatButton x:Name="DownLeftButton"  Grid.Row="2" Grid.Column="0" Content="Down-Left"  Click="MoveDownLeft_Click"/>
+                <RepeatButton x:Name="DownButton"      Grid.Row="2" Grid.Column="1" Content="Down"       Click="MoveDown_Click"/>
+                <RepeatButton x:Name="DownRightButton" Grid.Row="2" Grid.Column="2" Content="Down-Right" Click="MoveDownRight_Click"/>
+
+                <RepeatButton x:Name="RotateLeftButton"  Grid.Row="3" Grid.Column="0" Content="Rotate L" Click="RotateLeft_Click"/>
+                <RepeatButton x:Name="RotateRightButton" Grid.Row="3" Grid.Column="2" Content="Rotate R" Click="RotateRight_Click"/>
+            </Grid>
+
+        </Canvas>
+    </Grid>
 
 </Window>

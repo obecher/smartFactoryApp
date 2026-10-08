@@ -10,21 +10,59 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
-    private MainViewModel ViewModel => DataContext as MainViewModel;
-    private void MoveUp_Click(object sender, RoutedEventArgs e)
+
+    private MainViewModel? ViewModel
     {
-        ViewModel?MoveUp();
+        get { return DataContext as MainViewModel; }
     }
-    private void MoveDown_Click(object sender, RoutedEventArgs e)
+
+    private void MoveUp_Click(object? sender, RoutedEventArgs e)
     {
-        ViewModel?MoveDown();
+        ViewModel?.MoveUp();
     }
-    private void MoveLeft_Click(object sender, RoutedEventArgs e)
+
+    private void MoveDown_Click(object? sender, RoutedEventArgs e)
     {
-        ViewModel?MoveLeft();
+        ViewModel?.MoveDown();
     }
-    private void MoveRight_Click(object sender, RoutedEventArgs e)
+
+    private void MoveLeft_Click(object? sender, RoutedEventArgs e)
     {
-        ViewModel?MoveRight();
+        ViewModel?.MoveLeft();
+    }
+
+    private void MoveRight_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveRight();
+    }
+
+    private void MoveUpLeft_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveUpLeft();
+    }
+
+    private void MoveUpRight_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveUpRight();
+    }
+
+    private void MoveDownLeft_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveDownLeft();
+    }
+
+    private void MoveDownRight_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveDownRight();
+    }
+
+    private void RotateLeft_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.RotateLeft();
+    }
+
+    private void RotateRight_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.RotateRight();
     }
 }

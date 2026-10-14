@@ -1,6 +1,8 @@
+using System.ComponentModel;
+
 namespace MyAvaloniaApp.Models;
 
-internal class Parameters
+public class Parameters
 {
     public enum Direction
     {
@@ -35,4 +37,23 @@ internal class Parameters
     public const int arenaLeft = 38;
     public const int arenaTop = 38;
     public const int arenaSize = 525;
+
+    public enum LegoColor
+    {
+        yellow = 0,
+        blue = 1,
+
+        red = 2,
+
+        green = 3,
+    }
+    public enum LegoSize
+    {
+        large = 0,
+
+        small = 1,
+    }
+
+public const int BrickperLine = 4;
+public const int timerInterva = 50; //Timer INtervall in Millisekundne
 }

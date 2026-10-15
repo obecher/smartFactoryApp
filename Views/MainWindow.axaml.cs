@@ -65,4 +65,14 @@ public partial class MainWindow : Window
     {
         ViewModel?.RotateRight();
     }
+
+    private void Start_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.StartTimer();
+    }
+
+    private void Stop_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.StopTimer();
+    }
 }

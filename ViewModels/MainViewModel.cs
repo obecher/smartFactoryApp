@@ -1,3 +1,6 @@
+using System;
+using System.Collections.ObjectModel;
+using Avalonia.Threading;
 using MyAvaloniaApp.Models;
 
 namespace MyAvaloniaApp.ViewModels;
@@ -5,6 +8,7 @@ namespace MyAvaloniaApp.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private Factory factory;
+    private DispatcherTimer timer;
 
     public double RobotX => factory.RobotX;
     public double RobotY => factory.RobotY;
@@ -16,9 +20,40 @@ public partial class MainViewModel : ViewModelBase
     // Rote Anzeige der aktuellen Roboter-Koordinate
     public string PositionText => $"X: {factory.RobotX}  Y: {factory.RobotY}";
 
+    // Alle Legosteine für die Anzeige
+    public ObservableCollection<LegoBrickViewModel> Bricks { get; } = new ObservableCollection<LegoBrickViewModel>();
+
     public MainViewModel()
     {
         factory = new Factory();
+
+        foreach (var brick in factory.Bricks)
+        {
+            Bricks.Add(new LegoBrickViewModel(brick));
+        }
+
+        timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(Parameters.timerInterval)
+        };
+        timer.Tick += Timer_Tick;
+    }
+
+    public void StartTimer() => timer.Start();
+    public void StopTimer() => timer.Stop();
+
+    private void Timer_Tick(object? sender, EventArgs e)
+    {
+        factory.LegoBricksBewegen();
+        NotifyLegoBricksPositionChanged();
+    }
+
+    private void NotifyLegoBricksPositionChanged()
+    {
+        foreach (var brick in Bricks)
+        {
+            brick.Refresh();
+        }
     }
 
     public void MoveUp() => Move(Parameters.Direction.up);

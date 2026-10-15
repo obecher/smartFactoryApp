@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace MyAvaloniaApp.Models;
 
 public class Parameters
@@ -23,7 +21,22 @@ public class Parameters
         right = 1
     }
 
-    // "Geschwindigkeit" des Roboters in Pixeln pro Schritt
+    public enum LegoColor
+    {
+        yellow = 0,
+        blue = 1,
+        red = 2,
+        green = 3
+    }
+
+    public enum LegoSize
+    {
+        large = 0,
+        medium = 1,
+        small = 2
+    }
+
+    // "Geschwindigkeit" in Pixeln pro Schritt (Roboter und Legosteine)
     public const int step = 3;
 
     // Drehwinkel pro Klick in Grad
@@ -38,22 +51,13 @@ public class Parameters
     public const int arenaTop = 38;
     public const int arenaSize = 525;
 
-    public enum LegoColor
-    {
-        yellow = 0,
-        blue = 1,
+    // Legosteine
+    public const int bricksPerLine = 4;       // Steine pro Produktionslinie
+    public const int brickSmallSize = 12;     // Kantenlänge kleiner Stein in Pixeln
+    public const int brickMediumSize = 18;    // Kantenlänge mittlerer Stein in Pixeln
+    public const int brickSpacing = 24;       // Abstand zwischen den Steinen einer Linie
+    public const int lineOffset = 170;        // Abstand der Linien vom Mittelpunkt des Plans
 
-        red = 2,
-
-        green = 3,
-    }
-    public enum LegoSize
-    {
-        large = 0,
-
-        small = 1,
-    }
-
-public const int BrickperLine = 4;
-public const int timerInterva = 50; //Timer INtervall in Millisekundne
+    // Timer-Intervall in Millisekunden
+    public const int timerInterval = 50;
 }

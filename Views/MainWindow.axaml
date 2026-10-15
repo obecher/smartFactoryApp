@@ -12,8 +12,6 @@
         Title="MyAvaloniaApp">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainViewModel />
     </Design.DataContext>
 
@@ -30,6 +28,26 @@
                        Canvas.Left="45"
                        Canvas.Top="42"/>
 
+            <!-- Legosteine -->
+            <ItemsControl ItemsSource="{Binding Bricks}" Width="900" Height="600" IsHitTestVisible="False">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.Styles>
+                    <Style Selector="ContentPresenter" x:DataType="vm:LegoBrickViewModel">
+                        <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                        <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                    </Style>
+                </ItemsControl.Styles>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:LegoBrickViewModel">
+                        <Rectangle Width="{Binding Size}" Height="{Binding Size}" Fill="{Binding Fill}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <!-- Der Roboter -->
             <Image x:Name="RobotImage"
                    Source="avares://MyAvaloniaApp/Assets/robot_platform.png"
@@ -44,7 +62,13 @@
                 </Image.RenderTransform>
             </Image>
 
-            <!-- Steuerung: 8 Richtungen + 2x Drehen. RepeatButton = Button, der beim Gedrückthalten wiederholt auslöst -->
+            <!-- Start / Stop für die Bewegung der Legosteine -->
+            <Button x:Name="StartButton" Canvas.Left="625" Canvas.Top="340" Width="120" Height="36"
+                    Content="Start" HorizontalContentAlignment="Center" Click="Start_Click"/>
+            <Button x:Name="StopButton" Canvas.Left="755" Canvas.Top="340" Width="120" Height="36"
+                    Content="Stop" HorizontalContentAlignment="Center" Click="Stop_Click"/>
+
+            <!-- Steuerung: 8 Richtungen + 2x Drehen -->
             <Grid Canvas.Left="650" Canvas.Top="420" Width="228"
                   ColumnDefinitions="76,76,76" RowDefinitions="36,36,36,36">
                 <Grid.Styles>

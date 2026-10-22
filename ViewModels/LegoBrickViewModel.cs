@@ -7,15 +7,11 @@ public class LegoBrickViewModel : ViewModelBase
 {
     private readonly LegoBrick brick;
 
-    public double X => brick.Location.X;
-    public double Y => brick.Location.Y;
-
-    public double Size => brick.Size switch
-    {
-        Parameters.LegoSize.small => Parameters.brickSmallSize,
-        Parameters.LegoSize.medium => Parameters.brickMediumSize,
-        _ => Parameters.brickMediumSize * 2
-    };
+    public double X => brick.X;
+    public double Y => brick.Y;
+    public double Angle => brick.Angle;
+    public double Width => brick.Width;
+    public double Height => brick.Height;
 
     public IBrush Fill { get; }
 
@@ -31,10 +27,11 @@ public class LegoBrickViewModel : ViewModelBase
         }));
     }
 
-    // Nach jeder Bewegung aufrufen, damit die Oberfläche die neue Position zeichnet
+    // Nach jeder Bewegung aufrufen, damit die Oberfläche die neue Pose zeichnet
     public void Refresh()
     {
         OnPropertyChanged(nameof(X));
         OnPropertyChanged(nameof(Y));
+        OnPropertyChanged(nameof(Angle));
     }
 }

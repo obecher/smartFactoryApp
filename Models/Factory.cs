@@ -1,90 +1,106 @@
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace MyAvaloniaApp.Models;
 
 public class Factory
 {
     private Robot robot;
-    private List<LegoBrick> bricks = new List<LegoBrick>();
+    private ProductionLine productionRed;
+    private ProductionLine productionBlue;
+    private ProductionLine productionYellow;
+    private ProductionLine productionGreen;
+    private ProductionLine productionRecycle;
+    private ProductionLine productionDelivery;
 
-    // Zähler für die Hin- und Herbewegung der Legosteine
-    private int tickCount = 0;
+    // alle sechs Linien (Hindernisse für den Roboter) und alle Steine (greifbar)
+    private List<ProductionLine> productionLines = new List<ProductionLine>();
+    private List<LegoBrick> allBricks = new List<LegoBrick>();
 
-    // Properties immer groß schreiben
-    public int RobotX => robot.Location.X;
-    public int RobotY => robot.Location.Y;
-    public int RobotAngle => robot.Angle;
+    // ---- Roboter ----
+    public double RobotX => robot.X;
+    public double RobotY => robot.Y;
+    public double RobotAngle => robot.Angle;
 
-    public IReadOnlyList<LegoBrick> Bricks => bricks;
+    public Parameters.Direction RobotDirection
+    {
+        get { return robot.RobotDirection; }
+        set { robot.RobotDirection = value; }
+    }
+
+    // ---- Produktionslinien ----
+    public double ProductionRedX => productionRed.X;
+    public double ProductionRedY => productionRed.Y;
+    public double ProductionRedAngle => productionRed.Angle;
+
+    public double ProductionBlueX => productionBlue.X;
+    public double ProductionBlueY => productionBlue.Y;
+    public double ProductionBlueAngle => productionBlue.Angle;
+
+    public double ProductionYellowX => productionYellow.X;
+    public double ProductionYellowY => productionYellow.Y;
+    public double ProductionYellowAngle => productionYellow.Angle;
+
+    public double ProductionGreenX => productionGreen.X;
+    public double ProductionGreenY => productionGreen.Y;
+    public double ProductionGreenAngle => productionGreen.Angle;
+
+    public double ProductionRecycleX => productionRecycle.X;
+    public double ProductionRecycleY => productionRecycle.Y;
+    public double ProductionRecycleAngle => productionRecycle.Angle;
+
+    public double ProductionDeliveryX => productionDelivery.X;
+    public double ProductionDeliveryY => productionDelivery.Y;
+    public double ProductionDeliveryAngle => productionDelivery.Angle;
+
+    // ---- Legosteine ----
+    public IReadOnlyList<LegoBrick> RedBricks => productionRed.Bricks;
+    public IReadOnlyList<LegoBrick> BlueBricks => productionBlue.Bricks;
+    public IReadOnlyList<LegoBrick> YellowBricks => productionYellow.Bricks;
+    public IReadOnlyList<LegoBrick> GreenBricks => productionGreen.Bricks;
 
     public Factory()
     {
-        // Erlaubter Bereich für die linke obere Ecke: grauer Bereich minus Robotergröße
-        Rectangle borders = new Rectangle(
-            Parameters.arenaLeft,
-            Parameters.arenaTop,
-            Parameters.arenaSize - Parameters.robotWidth,
-            Parameters.arenaSize - Parameters.robotHeight);
+        productionRed = new ProductionLine(ViewParameters.RectRedPose, Parameters.LegoColor.red);
+        productionBlue = new ProductionLine(ViewParameters.RectBluePose, Parameters.LegoColor.blue);
+        productionYellow = new ProductionLine(ViewParameters.RectYellowPose, Parameters.LegoColor.yellow);
+        productionGreen = new ProductionLine(ViewParameters.RectGreenPose, Parameters.LegoColor.green);
 
-        // Start: Roboter mittig im grauen Bereich
-        Point start = new Point(
-            Parameters.arenaLeft + (Parameters.arenaSize - Parameters.robotWidth) / 2,
-            Parameters.arenaTop + (Parameters.arenaSize - Parameters.robotHeight) / 2);
+        // Recycling- und Lieferlinie haben keine Farbe und keine Steine
+        productionRecycle = new ProductionLine(ViewParameters.RectRecyclePose,
+            ViewParameters.ProductionLineWidth, ViewParameters.ProductionLineHeight);
+        productionDelivery = new ProductionLine(ViewParameters.RectDeliveryPose,
+            ViewParameters.ProductionDeliveryWidth, ViewParameters.ProductionDeliveryHeight);
 
-        robot = new Robot(start, borders);
+        productionLines.Add(productionRed);
+        productionLines.Add(productionBlue);
+        productionLines.Add(productionYellow);
+        productionLines.Add(productionGreen);
+        productionLines.Add(productionRecycle);
+        productionLines.Add(productionDelivery);
 
-        CreateBricks();
+        allBricks.AddRange(productionRed.Bricks);
+        allBricks.AddRange(productionBlue.Bricks);
+        allBricks.AddRange(productionYellow.Bricks);
+        allBricks.AddRange(productionGreen.Bricks);
+
+        robot = new Robot(ViewParameters.RobotPose, ViewParameters.Borders);
+        robot.ProductionLines = productionLines;
+        robot.Bricks = allBricks;
     }
 
-    // Vier Produktionslinien, punktsymmetrisch um den Mittelpunkt des Plans
-    private void CreateBricks()
-    {
-        int center = Parameters.arenaLeft + Parameters.arenaSize / 2;
-        int offset = Parameters.lineOffset;
+    public void RobotBewegen(Parameters.Direction direction, double distance) => robot.Bewegen(direction, distance);
+    public void RobotDrehen(Parameters.Rotation rotation, double degrees) => robot.Drehen(rotation, degrees);
+    public void RobotWinkelZuruecksetzen() => robot.ResetRotation();
 
-        // Letzter Parameter dirX: 1 = Linie läuft von links oben nach rechts unten,
-        //                        -1 = Linie läuft von rechts oben nach links unten
-        CreateLine(Parameters.LegoColor.red,    center - offset, center - offset, -1);
-        CreateLine(Parameters.LegoColor.blue,   center + offset, center - offset,  1);
-        CreateLine(Parameters.LegoColor.yellow, center - offset, center + offset,  1);
-        CreateLine(Parameters.LegoColor.green,  center + offset, center + offset, -1);
-    }
+    // Lässt den getragenen Stein los
+    public void Undock() => robot.Undock();
 
-    private void CreateLine(Parameters.LegoColor color, int centerX, int centerY, int dirX)
-    {
-        // Bewegungsrichtung entlang der Linie
-        Parameters.Direction forward = dirX > 0 ? Parameters.Direction.downRight : Parameters.Direction.downLeft;
-        Parameters.Direction backward = dirX > 0 ? Parameters.Direction.upLeft : Parameters.Direction.upRight;
-
-        for (int i = 0; i < Parameters.bricksPerLine; i++)
-        {
-            // Position relativ zur Mitte der Linie: bei 4 Steinen -1.5, -0.5, 0.5, 1.5
-            double k = i - (Parameters.bricksPerLine - 1) / 2.0;
-            int x = centerX + (int)(k * Parameters.brickSpacing * dirX);
-            int y = centerY + (int)(k * Parameters.brickSpacing);
-
-            // Erste Hälfte kleine, zweite Hälfte mittlere Steine
-            Parameters.LegoSize size = i < Parameters.bricksPerLine / 2
-                ? Parameters.LegoSize.small
-                : Parameters.LegoSize.medium;
-
-            bricks.Add(new LegoBrick(new Pose(x, y, 0), color, size, forward, backward));
-        }
-    }
-
-    public void RobotBewegen(Parameters.Direction direction) => robot.Bewegen(direction);
-    public void RobotDrehen(Parameters.Rotation rotation) => robot.Drehen(rotation);
-
-    // Ein Schritt der Legosteine: 10 Ticks vorwärts, dann 10 Ticks rückwärts entlang der Linie
+    // Alle vier Produktionslinien machen einen Schritt
     public void LegoBricksBewegen()
     {
-        bool forward = tickCount < 10;
-        tickCount = (tickCount + 1) % 20;
-
-        foreach (LegoBrick brick in bricks)
-        {
-            brick.Bewegen(forward ? brick.ForwardDirection : brick.BackwardDirection);
-        }
+        productionRed.Bewegen();
+        productionBlue.Bewegen();
+        productionYellow.Bewegen();
+        productionGreen.Bewegen();
     }
 }

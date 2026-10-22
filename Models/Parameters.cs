@@ -36,28 +36,42 @@ public class Parameters
         small = 2
     }
 
-    // "Geschwindigkeit" in Pixeln pro Schritt (Roboter und Legosteine)
-    public const int step = 3;
+    // ---- Bewegung des Roboters ----
+    // Dauerbewegung (Move): Pixel bzw. Grad pro Timer-Tick
+    public const double step = 3;
+    public const double rotationStep = 3;
+    // Einzelschritt (Step): Pixel bzw. Grad pro Klick
+    public const double stepMove = 10;
+    public const double stepRotation = 15;
+    // true: "oben" heißt "in Blickrichtung des Roboters", false: "oben" heißt "nach oben auf dem Plan"
+    public const bool moveRelativeToRobot = true;
 
-    // Drehwinkel pro Klick in Grad
-    public const int rotationStep = 5;
-
-    // Anzeigegröße des Roboters (robot_platform.png ist 790x502, hier verkleinert)
+    // Größe des Roboters in Pixeln (robot_platform.png wird darauf skaliert)
     public const int robotWidth = 30;
-    public const int robotHeight = 19;
+    public const int robotHeight = 63;
 
-    // Grauer Bereich in factory_plan.png (x/y = 38..562, also 525 x 525 Pixel)
+    // Grauer Bereich in factory_plan.png (x/y = 38..563)
     public const int arenaLeft = 38;
     public const int arenaTop = 38;
     public const int arenaSize = 525;
 
-    // Legosteine
+    // ---- Legosteine ----
     public const int bricksPerLine = 4;       // Steine pro Produktionslinie
-    public const int brickSmallSize = 12;     // Kantenlänge kleiner Stein in Pixeln
-    public const int brickMediumSize = 18;    // Kantenlänge mittlerer Stein in Pixeln
-    public const int brickSpacing = 24;       // Abstand zwischen den Steinen einer Linie
-    public const int lineOffset = 170;        // Abstand der Linien vom Mittelpunkt des Plans
+    public const int brickSpacing = 40;       // Abstand der Steinmitten entlang der Linie
+    public const int brickSmallWidth = 14;
+    public const int brickSmallHeight = 9;
+    public const int brickMediumWidth = 20;
+    public const int brickMediumHeight = 12;
+    public const int brickLargeWidth = 28;
+    public const int brickLargeHeight = 16;
 
-    // Timer-Intervall in Millisekunden
-    public const int timerInterval = 50;
+    // Docking: Abstand zwischen Greifpunkt (TCP) und Stein in Pixeln
+    public const double dockDistance = 10;
+
+    // Pendelbewegung der Steine auf ihrer Linie: Ticks pro Richtung
+    public const int stepsPerDirection = 6;
+
+    // Timer-Intervalle in Millisekunden
+    public const int timerInterval = 50;        // Legosteine
+    public const int robotTimerInterval = 30;   // Dauerbewegung des Roboters
 }

@@ -12,6 +12,8 @@
         Title="MyAvaloniaApp">
 
     <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainViewModel />
     </Design.DataContext>
 
@@ -21,14 +23,91 @@
 
         <Canvas x:Name="canvasFactory" HorizontalAlignment="Left" Height="600" VerticalAlignment="Top" Width="900">
 
-            <!-- Aktuelle Koordinate des Roboters (rot) -->
+            <!-- Aktuelle Pose des Roboters (rot) -->
             <TextBlock Text="{Binding PositionText}"
                        Foreground="Red"
                        FontSize="16"
-                       Canvas.Left="45"
+                       Canvas.Left="50"
                        Canvas.Top="42"/>
 
-            <!-- Legosteine -->
+            <!-- Die vier Produktionslinien mit Legosteinen: weißes Rechteck (160 x 60) mit Förderband,
+                 um den Winkel der Linie gedreht (rot 90, blau 270, gelb/grün 0) -->
+            <Grid Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}"
+                  Canvas.Left="{Binding ProductionRedX}" Canvas.Top="{Binding ProductionRedY}"
+                  RenderTransformOrigin="50%,50%">
+                <Grid.RenderTransform>
+                    <RotateTransform Angle="{Binding ProductionRedAngle}"/>
+                </Grid.RenderTransform>
+                <Border Background="White"/>
+                <Image Source="avares://MyAvaloniaApp/Assets/productionline_red.png" Stretch="Fill"
+                       Width="140" Height="40" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+            </Grid>
+            <Grid Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}"
+                  Canvas.Left="{Binding ProductionBlueX}" Canvas.Top="{Binding ProductionBlueY}"
+                  RenderTransformOrigin="50%,50%">
+                <Grid.RenderTransform>
+                    <RotateTransform Angle="{Binding ProductionBlueAngle}"/>
+                </Grid.RenderTransform>
+                <Border Background="White"/>
+                <Image Source="avares://MyAvaloniaApp/Assets/productionline_blue.png" Stretch="Fill"
+                       Width="140" Height="40" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+            </Grid>
+            <Grid Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}"
+                  Canvas.Left="{Binding ProductionYellowX}" Canvas.Top="{Binding ProductionYellowY}"
+                  RenderTransformOrigin="50%,50%">
+                <Grid.RenderTransform>
+                    <RotateTransform Angle="{Binding ProductionYellowAngle}"/>
+                </Grid.RenderTransform>
+                <Border Background="White"/>
+                <Image Source="avares://MyAvaloniaApp/Assets/productionline_yellow.png" Stretch="Fill"
+                       Width="140" Height="40" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+            </Grid>
+            <Grid Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}"
+                  Canvas.Left="{Binding ProductionGreenX}" Canvas.Top="{Binding ProductionGreenY}"
+                  RenderTransformOrigin="50%,50%">
+                <Grid.RenderTransform>
+                    <RotateTransform Angle="{Binding ProductionGreenAngle}"/>
+                </Grid.RenderTransform>
+                <Border Background="White"/>
+                <Image Source="avares://MyAvaloniaApp/Assets/productionline_green.png" Stretch="Fill"
+                       Width="140" Height="40" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+            </Grid>
+
+            <!-- Recycling-Linie in der Mitte: Bild mit Förderband in allen vier Farben (160 x 60) -->
+            <Image Source="avares://MyAvaloniaApp/Assets/productionline_recycle.png" Stretch="Fill"
+                   Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}"
+                   Canvas.Left="{Binding ProductionRecycleX}" Canvas.Top="{Binding ProductionRecycleY}"
+                   RenderTransformOrigin="50%,50%">
+                <Image.RenderTransform>
+                    <RotateTransform Angle="{Binding ProductionRecycleAngle}"/>
+                </Image.RenderTransform>
+            </Image>
+
+            <!-- Lieferlinie am oberen Rand -->
+            <Grid Width="{Binding ProductionDeliveryWidth}" Height="{Binding ProductionDeliveryHeight}"
+                  Canvas.Left="{Binding ProductionDeliveryX}" Canvas.Top="{Binding ProductionDeliveryY}"
+                  RenderTransformOrigin="50%,50%">
+                <Grid.RenderTransform>
+                    <RotateTransform Angle="{Binding ProductionDeliveryAngle}"/>
+                </Grid.RenderTransform>
+                <Border Background="White"/>
+                <Grid ColumnDefinitions="57,63,66" RowDefinitions="33,*">
+                    <Border Grid.Column="0" Background="#F9C9B6" BorderBrush="Black" BorderThickness="1">
+                        <TextBlock Text="Recycle" FontWeight="Bold" FontSize="13" Foreground="Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Column="1" Background="#FFFFC0" BorderBrush="Black" BorderThickness="1">
+                        <TextBlock Text="Delivery" FontWeight="Bold" FontSize="13" Foreground="Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Column="2" Background="#D6F5C8" BorderBrush="Black" BorderThickness="1">
+                        <TextBlock Text="Customer" FontWeight="Bold" FontSize="13" Foreground="Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- Legosteine: ItemsControl mit Canvas, Pose und Größe kommen aus dem LegoBrickViewModel -->
             <ItemsControl ItemsSource="{Binding Bricks}" Width="900" Height="600" IsHitTestVisible="False">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -43,7 +122,12 @@
                 </ItemsControl.Styles>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:LegoBrickViewModel">
-                        <Rectangle Width="{Binding Size}" Height="{Binding Size}" Fill="{Binding Fill}"/>
+                        <Rectangle Width="{Binding Width}" Height="{Binding Height}" Fill="{Binding Fill}"
+                                   RenderTransformOrigin="50%,50%">
+                            <Rectangle.RenderTransform>
+                                <RotateTransform Angle="{Binding Angle}"/>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -62,41 +146,49 @@
                 </Image.RenderTransform>
             </Image>
 
-            <!-- Start / Stop für die Bewegung der Legosteine -->
-            <Button x:Name="StartButton" Canvas.Left="625" Canvas.Top="340" Width="120" Height="36"
-                    Content="Start" HorizontalContentAlignment="Center" Click="Start_Click"/>
-            <Button x:Name="StopButton" Canvas.Left="755" Canvas.Top="340" Width="120" Height="36"
-                    Content="Stop" HorizontalContentAlignment="Center" Click="Stop_Click"/>
+            <!-- Start / Stop für die Pendelbewegung der Legosteine -->
+            <Button x:Name="StartButton" Canvas.Left="628" Canvas.Top="201" Width="80" Height="30"
+                    Content="Start" HorizontalContentAlignment="Center" Click="StartTimer_Click"/>
+            <Button x:Name="StopButton" Canvas.Left="716" Canvas.Top="201" Width="80" Height="30"
+                    Content="Stop" HorizontalContentAlignment="Center" Click="StopTimer_Click"/>
 
-            <!-- Steuerung: 8 Richtungen + 2x Drehen -->
-            <Grid Canvas.Left="650" Canvas.Top="420" Width="228"
-                  ColumnDefinitions="76,76,76" RowDefinitions="36,36,36,36">
+            <!-- Move = Dauerbewegung bis Stop, Step = ein Schritt pro Klick -->
+            <RadioButton x:Name="MoveRadio" GroupName="Mode" Content="Move" Canvas.Left="658" Canvas.Top="458"/>
+            <RadioButton x:Name="StepRadio" GroupName="Mode" Content="Step" Canvas.Left="658" Canvas.Top="494"
+                         IsChecked="{Binding IsStepMode}"/>
+            <Button x:Name="UndockButton" Canvas.Left="660" Canvas.Top="528" Width="74" Height="30"
+                    Content="Undock" HorizontalContentAlignment="Center" Click="UndockButton_Click"/>
+
+            <!-- Steuerung: 8 Richtungen, Stop in der Mitte, Drehen links/rechts und Winkel zurücksetzen -->
+            <Grid Canvas.Left="750" Canvas.Top="440" Width="132"
+                  ColumnDefinitions="44,44,44" RowDefinitions="36,36,36,36">
                 <Grid.Styles>
-                    <Style Selector="RepeatButton">
+                    <Style Selector="Button">
                         <Setter Property="HorizontalAlignment" Value="Stretch"/>
                         <Setter Property="VerticalAlignment" Value="Stretch"/>
                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                         <Setter Property="Margin" Value="2"/>
-                        <Setter Property="FontSize" Value="12"/>
-                        <Setter Property="Delay" Value="300"/>
-                        <Setter Property="Interval" Value="25"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="FontSize" Value="14"/>
                     </Style>
                 </Grid.Styles>
 
-                <RepeatButton x:Name="UpLeftButton"    Grid.Row="0" Grid.Column="0" Content="Up-Left"    Click="MoveUpLeft_Click"/>
-                <RepeatButton x:Name="UpButton"        Grid.Row="0" Grid.Column="1" Content="Up"         Click="MoveUp_Click"/>
-                <RepeatButton x:Name="UpRightButton"   Grid.Row="0" Grid.Column="2" Content="Up-Right"   Click="MoveUpRight_Click"/>
+                <Button x:Name="UpLeftButton"    Grid.Row="0" Grid.Column="0" Content="↖" Click="MoveUpLeft_Click"/>
+                <Button x:Name="UpButton"        Grid.Row="0" Grid.Column="1" Content="↑" Click="MoveUp_Click"/>
+                <Button x:Name="UpRightButton"   Grid.Row="0" Grid.Column="2" Content="↗" Click="MoveUpRight_Click"/>
 
-                <RepeatButton x:Name="LeftButton"      Grid.Row="1" Grid.Column="0" Content="Left"       Click="MoveLeft_Click"/>
-                <RepeatButton x:Name="RightButton"     Grid.Row="1" Grid.Column="2" Content="Right"      Click="MoveRight_Click"/>
+                <Button x:Name="LeftButton"      Grid.Row="1" Grid.Column="0" Content="←" Click="MoveLeft_Click"/>
+                <Button x:Name="StopRobotButton" Grid.Row="1" Grid.Column="1" Content="■" Click="Stop_Click"/>
+                <Button x:Name="RightButton"     Grid.Row="1" Grid.Column="2" Content="→" Click="MoveRight_Click"/>
 
-                <RepeatButton x:Name="DownLeftButton"  Grid.Row="2" Grid.Column="0" Content="Down-Left"  Click="MoveDownLeft_Click"/>
-                <RepeatButton x:Name="DownButton"      Grid.Row="2" Grid.Column="1" Content="Down"       Click="MoveDown_Click"/>
-                <RepeatButton x:Name="DownRightButton" Grid.Row="2" Grid.Column="2" Content="Down-Right" Click="MoveDownRight_Click"/>
+                <Button x:Name="DownLeftButton"  Grid.Row="2" Grid.Column="0" Content="↙" Click="MoveDownLeft_Click"/>
+                <Button x:Name="DownButton"      Grid.Row="2" Grid.Column="1" Content="↓" Click="MoveDown_Click"/>
+                <Button x:Name="DownRightButton" Grid.Row="2" Grid.Column="2" Content="↘" Click="MoveDownRight_Click"/>
 
-                <RepeatButton x:Name="RotateLeftButton"  Grid.Row="3" Grid.Column="0" Content="Rotate L" Click="RotateLeft_Click"/>
-                <RepeatButton x:Name="RotateRightButton" Grid.Row="3" Grid.Column="2" Content="Rotate R" Click="RotateRight_Click"/>
+                <Button x:Name="RotateLeftButton"  Grid.Row="3" Grid.Column="0" Content="↺" Click="MoveRotateLeft_Click"/>
+                <Button x:Name="ResetRotationButton" Grid.Row="3" Grid.Column="1" Content="0°" Click="ResetRotation_Click"/>
+                <Button x:Name="RotateRightButton" Grid.Row="3" Grid.Column="2" Content="↻" Click="MoveRotateRight_Click"/>
             </Grid>
 
         </Canvas>

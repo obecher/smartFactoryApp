@@ -10,6 +10,14 @@ public partial class MainViewModel : ViewModelBase
     private Factory factory;
     private DispatcherTimer timer;        // Pendelbewegung der Legosteine (Start/Stop)
     private DispatcherTimer robotTimer;   // Dauerbewegung des Roboters (Move-Modus)
+    private DispatcherTimer deliveryTimer; // Steine auf der Lieferlinie (läuft nur, solange welche unterwegs sind)
+
+    private int yellowDelivered;
+    private int blueDelivered;
+    private int redDelivered;
+    private int greenDelivered;
+    private string orderInfo = "";
+    private string undockInfo = "";
 
     private bool isStepMode = true;
     private Parameters.Rotation? rotation;   // aktuelle Dauerdrehung, null = keine
@@ -67,6 +75,40 @@ public partial class MainViewModel : ViewModelBase
     public double ProductionDeliveryY => factory.ProductionDeliveryY;
     public double ProductionDeliveryAngle => factory.ProductionDeliveryAngle;
 
+    // Bild mit den drei Feldern For Recycling / Delivery / To Customers
+    public double DeliveryStripX => ViewParameters.ToRecycleLinePosition.X;
+    public double DeliveryStripY => ViewParameters.ToRecycleLinePosition.Y;
+    public double DeliveryStripWidth => ViewParameters.DeliveryStripWidth;
+    public double DeliveryStripHeight => ViewParameters.ProductionDeliveryHeight;
+
+    // ---------- Auslieferung ----------
+    public int YellowDelivered => yellowDelivered;
+    public int BlueDelivered => blueDelivered;
+    public int RedDelivered => redDelivered;
+    public int GreenDelivered => greenDelivered;
+
+    // Meldung zur Auslieferung ("Brick delivered", ...)
+    public string OrderInfo
+    {
+        get { return orderInfo; }
+        private set
+        {
+            orderInfo = value;
+            OnPropertyChanged(nameof(OrderInfo));
+        }
+    }
+
+    // Rückmeldung des Undock-Buttons
+    public string UndockInfo
+    {
+        get { return undockInfo; }
+        private set
+        {
+            undockInfo = value;
+            OnPropertyChanged(nameof(UndockInfo));
+        }
+    }
+
     // ---------- Legosteine ----------
     // Alle Steine für die Anzeige
     public ObservableCollection<LegoBrickViewModel> Bricks { get; } = new ObservableCollection<LegoBrickViewModel>();
@@ -91,6 +133,15 @@ public partial class MainViewModel : ViewModelBase
             Interval = TimeSpan.FromMilliseconds(Parameters.robotTimerInterval)
         };
         robotTimer.Tick += RobotTimer_Tick;
+
+        deliveryTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(Parameters.deliveryTimerInterval)
+        };
+        deliveryTimer.Tick += DeliveryTimer_Tick;
+
+        factory.BrickDelivered += Factory_BrickDelivered;
+        factory.BrickRecycled += Factory_BrickRecycled;
     }
 
     // ---------- Legosteine: Start / Stop ----------
@@ -167,11 +218,68 @@ public partial class MainViewModel : ViewModelBase
         NotifyRobotPositionChanged();
     }
 
-    // Lässt den getragenen Stein los
+    // Undock-Taste: lässt den Stein los, aber nur auf der Lieferlinie. Das Ergebnis wird angezeigt.
     public void Undock()
     {
-        factory.Undock();
+        Parameters.UndockResult result = factory.Undock();
+
+        UndockInfo = result switch
+        {
+            Parameters.UndockResult.ToCustomer => "Undocking successful: the brick is sent to the customers.",
+            Parameters.UndockResult.ToRecycle => "Undocking successful: the brick is defective and sent to recycling.",
+            Parameters.UndockResult.NoBrick => "No brick available to undock.",
+            Parameters.UndockResult.NotOnDeliveryLine => "Undocking is only possible on the delivery line.",
+            _ => ""
+        };
+
+        if (result == Parameters.UndockResult.ToCustomer || result == Parameters.UndockResult.ToRecycle)
+        {
+            deliveryTimer.Start();
+        }
+
         NotifyRobotPositionChanged();
+    }
+
+    // Steine auf der Lieferlinie fahren; wenn keiner mehr unterwegs ist, hält der Timer an
+    private void DeliveryTimer_Tick(object? sender, EventArgs e)
+    {
+        bool aktiv = factory.LogisticsBewegen();
+        NotifyLegoBricksPositionChanged();
+
+        if (!aktiv)
+        {
+            deliveryTimer.Stop();
+        }
+    }
+
+    private void Factory_BrickDelivered(LegoBrick brick)
+    {
+        switch (brick.Color)
+        {
+            case Parameters.LegoColor.yellow:
+                yellowDelivered++;
+                OnPropertyChanged(nameof(YellowDelivered));
+                break;
+            case Parameters.LegoColor.blue:
+                blueDelivered++;
+                OnPropertyChanged(nameof(BlueDelivered));
+                break;
+            case Parameters.LegoColor.red:
+                redDelivered++;
+                OnPropertyChanged(nameof(RedDelivered));
+                break;
+            case Parameters.LegoColor.green:
+                greenDelivered++;
+                OnPropertyChanged(nameof(GreenDelivered));
+                break;
+        }
+
+        OrderInfo = $"Brick delivered ({brick.Color})";
+    }
+
+    private void Factory_BrickRecycled(LegoBrick brick)
+    {
+        OrderInfo = $"Brick ({brick.Color}) arrived at the recycling line";
     }
 
     private void RobotTimer_Tick(object? sender, EventArgs e)

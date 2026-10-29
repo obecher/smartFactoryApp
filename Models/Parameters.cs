@@ -36,6 +36,27 @@ public class Parameters
         small = 2
     }
 
+    // Wo befindet sich ein Stein gerade? Nur Steine auf einer Produktions- oder Recyclinglinie
+    // können gegriffen werden, niemals Steine auf der Lieferlinie.
+    public enum BrickStatus
+    {
+        OnProductionLine = 0,   // liegt auf seiner Produktionslinie (greifbar)
+        OnRecycleLine = 1,      // liegt auf einem Platz der Recyclinglinie (greifbar)
+        Docked = 2,             // wird vom Roboter getragen
+        OnDeliveryLine = 3,     // gerade auf der Lieferlinie losgelassen (nicht greifbar)
+        ToCustomer = 4,         // fährt auf der Lieferlinie nach rechts zu den Kunden
+        ToRecycle = 5           // fährt auf der Lieferlinie nach links zum Recycling
+    }
+
+    // Ergebnis des Undock-Buttons
+    public enum UndockResult
+    {
+        NoBrick = 0,            // der Roboter trägt nichts
+        NotOnDeliveryLine = 1,  // Undock ist nur auf der Lieferlinie erlaubt
+        ToCustomer = 2,         // erfolgreich, Stein ist in Ordnung und geht zum Kunden
+        ToRecycle = 3           // erfolgreich, Stein ist defekt und geht zum Recycling
+    }
+
     // ---- Bewegung des Roboters ----
     // Dauerbewegung (Move): Pixel bzw. Grad pro Timer-Tick
     public const double step = 3;
@@ -68,10 +89,18 @@ public class Parameters
     // Docking: Abstand zwischen Greifpunkt (TCP) und Stein in Pixeln
     public const double dockDistance = 10;
 
+    // Undock: Der Greifpunkt darf höchstens so weit neben der Lieferlinie liegen (Pixel).
+    // Der Roboter kann nicht in die Linie hineinfahren, deshalb braucht es eine Toleranz.
+    public const double lineTolerance = 12;
+
+    // Lieferung: Pixel pro Tick, mit denen ein Stein auf der Lieferlinie fährt
+    public const double deliveryStep = 3;
+
     // Pendelbewegung der Steine auf ihrer Linie: Ticks pro Richtung
     public const int stepsPerDirection = 6;
 
     // Timer-Intervalle in Millisekunden
     public const int timerInterval = 50;        // Legosteine
     public const int robotTimerInterval = 30;   // Dauerbewegung des Roboters
+    public const int deliveryTimerInterval = 30; // Steine auf der Lieferlinie
 }

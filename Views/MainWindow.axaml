@@ -11,6 +11,20 @@
         Height="600"
         Title="MyAvaloniaApp">
 
+    <Window.Styles>
+        <!-- Tasten dunkler und besser lesbar -->
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#BDBFAE"/>
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#A9AB98"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#8F917F"/>
+        </Style>
+    </Window.Styles>
+
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
@@ -83,29 +97,10 @@
                 </Image.RenderTransform>
             </Image>
 
-            <!-- Lieferlinie am oberen Rand -->
-            <Grid Width="{Binding ProductionDeliveryWidth}" Height="{Binding ProductionDeliveryHeight}"
-                  Canvas.Left="{Binding ProductionDeliveryX}" Canvas.Top="{Binding ProductionDeliveryY}"
-                  RenderTransformOrigin="50%,50%">
-                <Grid.RenderTransform>
-                    <RotateTransform Angle="{Binding ProductionDeliveryAngle}"/>
-                </Grid.RenderTransform>
-                <Border Background="White"/>
-                <Grid ColumnDefinitions="57,63,66" RowDefinitions="33,*">
-                    <Border Grid.Column="0" Background="#F9C9B6" BorderBrush="Black" BorderThickness="1">
-                        <TextBlock Text="Recycle" FontWeight="Bold" FontSize="13" Foreground="Black"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <Border Grid.Column="1" Background="#FFFFC0" BorderBrush="Black" BorderThickness="1">
-                        <TextBlock Text="Delivery" FontWeight="Bold" FontSize="13" Foreground="Black"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <Border Grid.Column="2" Background="#D6F5C8" BorderBrush="Black" BorderThickness="1">
-                        <TextBlock Text="Customer" FontWeight="Bold" FontSize="13" Foreground="Black"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </Grid>
-            </Grid>
+            <!-- Lieferlinie am oberen Rand: Bild mit den drei Feldern For Recycling / Delivery / To Customers -->
+            <Image Source="avares://MyAvaloniaApp/Assets/Versandlinie.png" Stretch="Fill"
+                   Width="{Binding DeliveryStripWidth}" Height="{Binding DeliveryStripHeight}"
+                   Canvas.Left="{Binding DeliveryStripX}" Canvas.Top="{Binding DeliveryStripY}"/>
 
             <!-- Legosteine: ItemsControl mit Canvas, Pose und Größe kommen aus dem LegoBrickViewModel -->
             <ItemsControl ItemsSource="{Binding Bricks}" Width="900" Height="600" IsHitTestVisible="False">
@@ -146,10 +141,56 @@
                 </Image.RenderTransform>
             </Image>
 
+            <!-- Anzeige der gelieferten Steine pro Farbe -->
+            <TextBlock Text="Order" FontSize="22" FontWeight="Bold" Foreground="Black" Canvas.Left="630" Canvas.Top="28"/>
+            <TextBlock Text="Delivered" FontSize="13" FontWeight="Bold" Foreground="Black" Canvas.Left="801" Canvas.Top="36"/>
+            <Border Canvas.Left="630" Canvas.Top="56" Width="74" Height="30" CornerRadius="3" Background="#FFE000">
+                <TextBlock Text="yellow" FontWeight="Bold" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Border Canvas.Left="802" Canvas.Top="56" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding YellowDelivered}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+            <Border Canvas.Left="630" Canvas.Top="92" Width="74" Height="30" CornerRadius="3" Background="#4169E1">
+                <TextBlock Text="blue" FontWeight="Bold" Foreground="White" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Border Canvas.Left="802" Canvas.Top="92" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding BlueDelivered}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+            <Border Canvas.Left="630" Canvas.Top="128" Width="74" Height="30" CornerRadius="3" Background="#B22222">
+                <TextBlock Text="red" FontWeight="Bold" Foreground="White" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Border Canvas.Left="802" Canvas.Top="128" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding RedDelivered}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+            <Border Canvas.Left="630" Canvas.Top="164" Width="74" Height="30" CornerRadius="3" Background="#228B22">
+                <TextBlock Text="green" FontWeight="Bold" Foreground="White" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Border Canvas.Left="802" Canvas.Top="164" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding GreenDelivered}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+
+            <!-- Meldungen: Auslieferung und Ergebnis des Undock-Buttons -->
+            <TextBlock Text="{Binding OrderInfo}" Canvas.Left="628" Canvas.Top="262" Width="250"
+                       TextWrapping="Wrap" FontSize="14" Foreground="#1F5F5F"/>
+            <TextBlock Text="{Binding UndockInfo}" Canvas.Left="628" Canvas.Top="296" Width="250"
+                       TextWrapping="Wrap" FontSize="13" Foreground="Black"/>
+
             <!-- Start / Stop für die Pendelbewegung der Legosteine -->
-            <Button x:Name="StartButton" Canvas.Left="628" Canvas.Top="201" Width="80" Height="30"
+            <Button x:Name="StartButton" Canvas.Left="628" Canvas.Top="386" Width="120" Height="30"
                     Content="Start" HorizontalContentAlignment="Center" Click="StartTimer_Click"/>
-            <Button x:Name="StopButton" Canvas.Left="716" Canvas.Top="201" Width="80" Height="30"
+            <Button x:Name="StopButton" Canvas.Left="756" Canvas.Top="386" Width="120" Height="30"
                     Content="Stop" HorizontalContentAlignment="Center" Click="StopTimer_Click"/>
 
             <!-- Move = Dauerbewegung bis Stop, Step = ein Schritt pro Klick -->

@@ -18,6 +18,7 @@ namespace MyAvaloniaApp.Models
         private Rectangle borders = Rectangle.Empty;            // Spielfeld; leer = keine Begrenzung
         private List<ProductionLine> productionLines = new List<ProductionLine>();   // Hindernisse
         private List<LegoBrick> bricks = new List<LegoBrick>();                      // greifbare Steine
+        private ProductionLine? deliveryLine;                                        // Lieferlinie (hier darf losgelassen werden)
 
         private LegoBrick? dockobjekt;       // der Stein, den der Beweger gerade trägt
         private LegoBrick? freigegeben;      // zuletzt losgelassener Stein (wird nicht sofort wieder gegriffen)
@@ -71,6 +72,12 @@ namespace MyAvaloniaApp.Models
         {
             get { return bricks; }
             set { bricks = value; }
+        }
+
+        public ProductionLine? DeliveryLine
+        {
+            get { return deliveryLine; }
+            set { deliveryLine = value; }
         }
 
         public bool HatDockobjekt => dockobjekt != null;
@@ -158,8 +165,8 @@ namespace MyAvaloniaApp.Models
                 (float)(cy - (height / 2.0) * Math.Cos(rad)));
         }
 
-        // Abstand eines Punktes zum (gedrehten) Rechteck. 0 = Punkt liegt im Rechteck.
-        public double AbstandZu(PointF p)
+        // Abstand eines Punktes zu einem (gedrehten) Rechteck. 0 = Punkt liegt im Rechteck.
+        public static double AbstandPunktRechteck(PointF p, double x, double y, double width, double height, double angle)
         {
             double cx = x + width / 2.0;
             double cy = y + height / 2.0;
@@ -175,6 +182,8 @@ namespace MyAvaloniaApp.Models
             double ey = Math.Max(Math.Abs(ly) - height / 2.0, 0);
             return Math.Sqrt(ex * ex + ey * ey);
         }
+
+        public double AbstandZu(PointF p) => AbstandPunktRechteck(p, x, y, width, height, angle);
 
         private bool InnerhalbGrenzen(PointF[] ecken)
         {
@@ -282,6 +291,12 @@ namespace MyAvaloniaApp.Models
         {
         }
 
+        // Setzt die Pose über den MITTELPUNKT des Rechtecks, ohne Prüfung
+        public void SetzeMitte(double mitteX, double mitteY, double neuWinkel)
+        {
+            SetzePose(mitteX - width / 2.0, mitteY - height / 2.0, neuWinkel);
+        }
+
         // Nur für das Nachziehen eines getragenen Steins: setzt die Pose ohne Prüfung
         public void SetzePose(double neuX, double neuY, double neuWinkel)
         {
@@ -314,7 +329,9 @@ namespace MyAvaloniaApp.Models
 
             foreach (LegoBrick brick in bricks)
             {
-                if (brick.Gedockt || brick == freigegeben) continue;
+                // Nur Steine auf Produktions- oder Recyclinglinie sind greifbar,
+                // niemals Steine auf der Lieferlinie
+                if (!brick.Greifbar || brick == freigegeben) continue;
 
                 double abstand = brick.AbstandZu(tcp);
                 if (abstand <= Parameters.dockDistance && abstand < besterAbstand)
@@ -333,7 +350,7 @@ namespace MyAvaloniaApp.Models
         // Merkt sich die Lage des Steins relativ zum Roboter, damit er mitfahren kann
         public bool Dock(LegoBrick brick)
         {
-            if (dockobjekt != null || brick.Gedockt) return false;
+            if (dockobjekt != null || !brick.Greifbar) return false;
 
             double rad = angle * Math.PI / 180.0;
             double vx = (brick.X + brick.Width / 2.0) - (x + width / 2.0);
@@ -345,18 +362,29 @@ namespace MyAvaloniaApp.Models
             dockWinkelOffset = brick.Angle - angle;
 
             dockobjekt = brick;
-            brick.Gedockt = true;
-            brick.AufProduktionslinie = false;
+            brick.Status = Parameters.BrickStatus.Docked;
+            brick.RecyclePlatz = -1;     // der Platz auf der Recyclinglinie wird frei
             return true;
         }
 
-        public void Undock()
+        // Liegt der Greifpunkt auf der Lieferlinie (mit Toleranz)?
+        public bool AufDeliveryLinie()
         {
-            if (dockobjekt == null) return;
+            return deliveryLine != null
+                && deliveryLine.AbstandZu(Greifpunkt()) <= Parameters.lineTolerance;
+        }
 
-            dockobjekt.Gedockt = false;
-            freigegeben = dockobjekt;
+        // Lässt den getragenen Stein los und gibt ihn zurück (null, wenn nichts getragen wird).
+        // Ob das erlaubt ist (nur auf der Lieferlinie), entscheidet der Aufrufer mit AufDeliveryLinie().
+        public LegoBrick? Undock()
+        {
+            if (dockobjekt == null) return null;
+
+            LegoBrick brick = dockobjekt;
+            brick.Status = Parameters.BrickStatus.OnDeliveryLine;
+            freigegeben = brick;
             dockobjekt = null;
+            return brick;
         }
 
         // Pose des getragenen Steins, wenn der Roboter die Pose (rx, ry, ra) hätte

@@ -33,6 +33,15 @@ namespace MyAvaloniaApp.Models
         public const int ProductionDeliveryWidth = 186;
         public const int ProductionDeliveryHeight = 56;
 
+        // Pfeil-Felder links und rechts neben der Lieferlinie
+        public const int ToRecycleLineWidth = 115;
+        public const int ToRecycleLineHeight = 56;
+        public const int ToCustomerLineWidth = 115;
+        public const int ToCustomerLineHeight = 56;
+
+        // Das Bild Versandlinie.png zeigt alle drei Felder zusammen: ToRecycle, Delivery, ToCustomer
+        public const int DeliveryStripWidth = 425;
+
         // Die Legosteine liegen in der oberen Streifen-Hälfte der ungedrehten Linie.
         // 90 Grad: Streifen zeigt nach rechts (rote Linie links), 270 Grad: nach links (blaue Linie rechts).
         // Pose = linke obere Ecke des ungedrehten Rechtecks = Mittelpunkt - (Breite/2, Höhe/2)
@@ -41,6 +50,8 @@ namespace MyAvaloniaApp.Models
         public static Pose RectYellowPose   = new Pose(170 - ProductionLineWidth / 2, 462 - ProductionLineHeight / 2, 0);
         public static Pose RectGreenPose    = new Pose(430 - ProductionLineWidth / 2, 462 - ProductionLineHeight / 2, 0);
         public static Pose RectRecyclePose  = new Pose(300 - ProductionLineWidth / 2, 322 - ProductionLineHeight / 2, 0);
-        public static Pose RectDeliveryPose = new Pose(220, 40, 0);
+        public static Pose RectDeliveryPose = new Pose(222, 40, 0);
+        public static Pose ToRecycleLinePosition = new Pose(102, 40, 0);
+        public static Pose ToCustomerLinePosition = new Pose(412, 40, 0);
     }
 }

@@ -147,6 +147,7 @@ public partial class MainViewModel : ViewModelBase
     // ---------- Legosteine: Start / Stop ----------
     public void StartTimer() => timer.Start();
     public void StopTimer() => timer.Stop();
+    
 
     private void Timer_Tick(object? sender, EventArgs e)
     {
@@ -218,6 +219,38 @@ public partial class MainViewModel : ViewModelBase
         NotifyRobotPositionChanged();
     }
 
+// ---------- GoTo-Tasten ----------
+// Vorläufig: bis der Logistik-Plan die Station vorgibt, geht jeder Klick zur nächsten Station
+private Parameters.PickStation pickStation = Parameters.PickStation.yellow;
+
+public void GoToPickUp()
+{
+    Stop();                                    // laufende Dauerbewegung beenden
+    bool ok = factory.GoToLine(pickStation);   // Roboter vor die Linie setzen
+
+    UndockInfo = ok
+        ? $"Robot at the {pickStation} line: drive forward to dock the brick."
+        : "Robot cannot go there (blocked).";
+
+    // nächste Station für den nächsten Klick
+    pickStation = pickStation == Parameters.PickStation.recycle
+        ? Parameters.PickStation.yellow
+        : pickStation + 1;
+
+    NotifyRobotPositionChanged();
+}
+
+public void GoToDelivery()
+{
+    Stop();
+    bool ok = factory.GoToDelivery();
+
+    UndockInfo = ok
+        ? "Robot at the delivery line: undock the brick."
+        : "Robot cannot go there (blocked).";
+
+    NotifyRobotPositionChanged();
+}
     // Undock-Taste: lässt den Stein los, aber nur auf der Lieferlinie. Das Ergebnis wird angezeigt.
     public void Undock()
     {
@@ -306,4 +339,6 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(PositionText));
         NotifyLegoBricksPositionChanged();
     }
+
+   
 }

@@ -53,5 +53,13 @@ namespace MyAvaloniaApp.Models
         public static Pose RectDeliveryPose = new Pose(222, 40, 0);
         public static Pose ToRecycleLinePosition = new Pose(102, 40, 0);
         public static Pose ToCustomerLinePosition = new Pose(412, 40, 0);
+
+        //Winkel als Konstanten für GoToProdctionLine
+        public const double GoToYellowAngle = 180;
+        public const double GoToGreenAngle = 180;
+        public const double GoToRecycleAngle = 180;
+        public const double GoToRedAngle = 270;
+        public const double GoToBlueAngle = 90;
+        public const double GoToDeliveryAngle = 0;
     }
 }

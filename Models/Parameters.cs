@@ -20,6 +20,14 @@ public class Parameters
         left = 0,
         right = 1
     }
+    public enum PickStation
+{
+    yellow = 0,
+    blue = 1,
+    red = 2,
+    green = 3,
+    recycle = 4
+}
 
     public enum LegoColor
     {

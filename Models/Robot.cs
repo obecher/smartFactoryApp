@@ -47,4 +47,10 @@ internal class Robot : Beweger
     {
         PruefeDock();
     }
+
+    public bool GeheZuLinie(Pose pose)
+{
+    return VersucheZuSetzen(pose.X, pose.Y, pose.Angle);
+}
+
 }

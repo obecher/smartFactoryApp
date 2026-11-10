@@ -230,4 +230,42 @@ public class Factory
 
         return aktiv;
     }
+
+    public bool GoToLine(Parameters.PickStation station)
+{
+    Pose pose;
+    switch (station)
+    {
+        case Parameters.PickStation.yellow:
+            pose = new Pose(155, 344, ViewParameters.GoToYellowAngle);
+            break;
+
+        case Parameters.PickStation.blue:
+        pose = new Pose(358.5, 180.5, ViewParameters.GoToBlueAngle);
+        break;
+
+         case Parameters.PickStation.red:
+        pose = new Pose(211.5, 180.5, ViewParameters.GoToRedAngle);
+        break; 
+
+        case Parameters.PickStation.green:
+        pose = new Pose(415, 344, ViewParameters.GoToGreenAngle);
+        break; 
+
+        case Parameters.PickStation.recycle:
+        pose = new Pose(285, 204, ViewParameters.GoToRecycleAngle);
+        break; 
+
+        
+        default:
+            return false;
+    }
+    return robot.GeheZuLinie(pose);
+}
+
+public bool GoToDelivery()
+{
+    return robot.GeheZuLinie(new Pose(300, 97, ViewParameters.GoToDeliveryAngle));
+}
+
 }

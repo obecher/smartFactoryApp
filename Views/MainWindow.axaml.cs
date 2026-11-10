@@ -37,4 +37,10 @@ public partial class MainWindow : Window
     // Start/Stop der Pendelbewegung der Legosteine
     private void StartTimer_Click(object? sender, RoutedEventArgs e) { ViewModel?.StartTimer(); }
     private void StopTimer_Click(object? sender, RoutedEventArgs e) { ViewModel?.StopTimer(); }
+
+    //GoTO Buttons
+    private void GoToDelivery_Click(object? sender, RoutedEventArgs e) {ViewModel?.GoToDelivery(); }
+
+    private void GoToLine_Click(object? sender, RoutedEventArgs e) {ViewModel?.GoToPickUp(); }
+
 }

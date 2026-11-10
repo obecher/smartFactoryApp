@@ -192,6 +192,10 @@
                     Content="Start" HorizontalContentAlignment="Center" Click="StartTimer_Click"/>
             <Button x:Name="StopButton" Canvas.Left="756" Canvas.Top="386" Width="120" Height="30"
                     Content="Stop" HorizontalContentAlignment="Center" Click="StopTimer_Click"/>
+            <Button x:Name="GoToDelivery" Canvas.Left="756" Canvas.Top="346" Width="120" Height="30"
+                    Content="GoToDelivery" HorizontalContentAlignment="Center" Click="GoToDelivery_Click"/>
+            <Button x:Name="GoToLine" Canvas.Left="756" Canvas.Top="306" Width="120" Height="30"
+                    Content="GoToLine" HorizontalContentAlignment="Center" Click="GoToLine_Click"/>        
 
             <!-- Move = Dauerbewegung bis Stop, Step = ein Schritt pro Klick -->
             <RadioButton x:Name="MoveRadio" GroupName="Mode" Content="Move" Canvas.Left="658" Canvas.Top="458"/>

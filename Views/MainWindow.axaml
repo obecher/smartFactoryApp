@@ -142,7 +142,9 @@
             </Image>
 
             <!-- Anzeige der gelieferten Steine pro Farbe -->
-            <TextBlock Text="Order" FontSize="22" FontWeight="Bold" Foreground="Black" Canvas.Left="630" Canvas.Top="28"/>
+            
+            <Button x:Name="Order" Canvas.Left="630" Canvas.Top="8" Width="80" Height="40"
+                    Content="Order" HorizontalContentAlignment="Center" />
             <TextBlock Text="Delivered" FontSize="13" FontWeight="Bold" Foreground="Black" Canvas.Left="801" Canvas.Top="36"/>
             <Border Canvas.Left="630" Canvas.Top="56" Width="74" Height="30" CornerRadius="3" Background="#FFE000">
                 <TextBlock Text="yellow" FontWeight="Bold" Foreground="Black" FontSize="14"
@@ -196,6 +198,10 @@
                     Content="GoToDelivery" HorizontalContentAlignment="Center" Click="GoToDelivery_Click"/>
             <Button x:Name="GoToLine" Canvas.Left="756" Canvas.Top="306" Width="120" Height="30"
                     Content="GoToLine" HorizontalContentAlignment="Center" Click="GoToLine_Click"/>        
+            <Button x:Name="SetupButton" Canvas.Left="628" Canvas.Top="306" Width="121" Height="68"
+                IsEnabled="{Binding CanSetupProductionLines}" Click="SetupProductionLines_Click">
+                <TextBlock Text="Setup Production Lines" TextWrapping="Wrap" TextAlignment="Center"/>
+</Button>
 
             <!-- Move = Dauerbewegung bis Stop, Step = ein Schritt pro Klick -->
             <RadioButton x:Name="MoveRadio" GroupName="Mode" Content="Move" Canvas.Left="658" Canvas.Top="458"/>
@@ -234,6 +240,7 @@
                 <Button x:Name="RotateLeftButton"  Grid.Row="3" Grid.Column="0" Content="↺" Click="MoveRotateLeft_Click"/>
                 <Button x:Name="ResetRotationButton" Grid.Row="3" Grid.Column="1" Content="0°" Click="ResetRotation_Click"/>
                 <Button x:Name="RotateRightButton" Grid.Row="3" Grid.Column="2" Content="↻" Click="MoveRotateRight_Click"/>
+
             </Grid>
 
         </Canvas>

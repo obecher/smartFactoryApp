@@ -43,4 +43,6 @@ public partial class MainWindow : Window
 
     private void GoToLine_Click(object? sender, RoutedEventArgs e) {ViewModel?.GoToPickUp(); }
 
+    private void SetupProductionLines_Click(object? sender, RoutedEventArgs e) { ViewModel?.SetupProductionLines(); }
+
 }

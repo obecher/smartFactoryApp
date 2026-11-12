@@ -12,15 +12,11 @@ public partial class MainViewModel : ViewModelBase
     private DispatcherTimer robotTimer;   // Dauerbewegung des Roboters (Move-Modus)
     private DispatcherTimer deliveryTimer; // Steine auf der Lieferlinie (läuft nur, solange welche unterwegs sind)
 
-    private int yellowDelivered;
-    private int blueDelivered;
-    private int redDelivered;
-    private int greenDelivered;
-    private string orderInfo = "";
-    private string undockInfo = "";
-
     private bool isStepMode = true;
     private Parameters.Rotation? rotation;   // aktuelle Dauerdrehung, null = keine
+
+    private string orderInfo = "No order yet: click \"Order\"";
+    private string undockInfo = "";
 
     // ---------- Roboter ----------
     public double RobotX => factory.RobotX;
@@ -29,10 +25,8 @@ public partial class MainViewModel : ViewModelBase
     public double RobotWidth => Parameters.robotWidth;
     public double RobotHeight => Parameters.robotHeight;
 
-    // Rote Anzeige der aktuellen Roboter-Pose (Format passend zur Sprache des Systems)
     public string PositionText => $"X: {factory.RobotX:F1}\nY: {factory.RobotY:F1}\nAngle: {factory.RobotAngle:F1}°";
 
-    // true = Step (ein Schritt pro Klick), false = Move (Dauerbewegung bis Stop)
     public bool IsStepMode
     {
         get { return isStepMode; }
@@ -54,40 +48,39 @@ public partial class MainViewModel : ViewModelBase
     public double ProductionRedX => factory.ProductionRedX;
     public double ProductionRedY => factory.ProductionRedY;
     public double ProductionRedAngle => factory.ProductionRedAngle;
-
     public double ProductionBlueX => factory.ProductionBlueX;
     public double ProductionBlueY => factory.ProductionBlueY;
     public double ProductionBlueAngle => factory.ProductionBlueAngle;
-
     public double ProductionYellowX => factory.ProductionYellowX;
     public double ProductionYellowY => factory.ProductionYellowY;
     public double ProductionYellowAngle => factory.ProductionYellowAngle;
-
     public double ProductionGreenX => factory.ProductionGreenX;
     public double ProductionGreenY => factory.ProductionGreenY;
     public double ProductionGreenAngle => factory.ProductionGreenAngle;
-
     public double ProductionRecycleX => factory.ProductionRecycleX;
     public double ProductionRecycleY => factory.ProductionRecycleY;
     public double ProductionRecycleAngle => factory.ProductionRecycleAngle;
-
     public double ProductionDeliveryX => factory.ProductionDeliveryX;
     public double ProductionDeliveryY => factory.ProductionDeliveryY;
     public double ProductionDeliveryAngle => factory.ProductionDeliveryAngle;
 
-    // Bild mit den drei Feldern For Recycling / Delivery / To Customers
     public double DeliveryStripX => ViewParameters.ToRecycleLinePosition.X;
     public double DeliveryStripY => ViewParameters.ToRecycleLinePosition.Y;
     public double DeliveryStripWidth => ViewParameters.DeliveryStripWidth;
     public double DeliveryStripHeight => ViewParameters.ProductionDeliveryHeight;
 
-    // ---------- Auslieferung ----------
-    public int YellowDelivered => yellowDelivered;
-    public int BlueDelivered => blueDelivered;
-    public int RedDelivered => redDelivered;
-    public int GreenDelivered => greenDelivered;
+    // ---------- Bestellung (Order) und Auslieferung (Delivered) ----------
+    public int YellowOrder => factory.GetOrder(Parameters.LegoColor.yellow);
+    public int BlueOrder => factory.GetOrder(Parameters.LegoColor.blue);
+    public int RedOrder => factory.GetOrder(Parameters.LegoColor.red);
+    public int GreenOrder => factory.GetOrder(Parameters.LegoColor.green);
 
-    // Meldung zur Auslieferung ("Brick delivered", ...)
+    public int YellowDelivered => factory.GetDelivered(Parameters.LegoColor.yellow);
+    public int BlueDelivered => factory.GetDelivered(Parameters.LegoColor.blue);
+    public int RedDelivered => factory.GetDelivered(Parameters.LegoColor.red);
+    public int GreenDelivered => factory.GetDelivered(Parameters.LegoColor.green);
+
+    // Der Plan der Logistik (blauer Text): "Step 4/8: Pick blue brick from ..."
     public string OrderInfo
     {
         get { return orderInfo; }
@@ -98,7 +91,7 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    // Rückmeldung des Undock-Buttons
+    // Rückmeldungen des Roboters (schwarzer Text): Undock, GoTo, Recycling, ...
     public string UndockInfo
     {
         get { return undockInfo; }
@@ -110,44 +103,28 @@ public partial class MainViewModel : ViewModelBase
     }
 
     // ---------- Legosteine ----------
-    // Alle Steine für die Anzeige
     public ObservableCollection<LegoBrickViewModel> Bricks { get; } = new ObservableCollection<LegoBrickViewModel>();
 
     public MainViewModel()
     {
         factory = new Factory();
 
-        foreach (var brick in factory.RedBricks) Bricks.Add(new LegoBrickViewModel(brick));
-        foreach (var brick in factory.BlueBricks) Bricks.Add(new LegoBrickViewModel(brick));
-        foreach (var brick in factory.YellowBricks) Bricks.Add(new LegoBrickViewModel(brick));
-        foreach (var brick in factory.GreenBricks) Bricks.Add(new LegoBrickViewModel(brick));
-
-        timer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(Parameters.timerInterval)
-        };
+        timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Parameters.timerInterval) };
         timer.Tick += Timer_Tick;
 
-        robotTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(Parameters.robotTimerInterval)
-        };
+        robotTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Parameters.robotTimerInterval) };
         robotTimer.Tick += RobotTimer_Tick;
 
-        deliveryTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(Parameters.deliveryTimerInterval)
-        };
+        deliveryTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Parameters.deliveryTimerInterval) };
         deliveryTimer.Tick += DeliveryTimer_Tick;
 
         factory.BrickDelivered += Factory_BrickDelivered;
         factory.BrickRecycled += Factory_BrickRecycled;
+        factory.RecycleLineFull += Factory_RecycleLineFull;
     }
 
-    // ---------- Legosteine: Start / Stop ----------
     public void StartTimer() => timer.Start();
     public void StopTimer() => timer.Stop();
-    
 
     private void Timer_Tick(object? sender, EventArgs e)
     {
@@ -163,6 +140,99 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
+    // ---------- Setup Production Lines ----------
+    private bool productionLinesSetUp = false;
+
+    public bool CanSetupProductionLines => !productionLinesSetUp;
+
+    public void SetupProductionLines()
+    {
+        if (productionLinesSetUp) return;
+
+        factory.SetupProductionLines();
+
+        foreach (var brick in factory.AlleBricks)
+        {
+            Bricks.Add(new LegoBrickViewModel(brick));
+        }
+
+        productionLinesSetUp = true;
+        OnPropertyChanged(nameof(CanSetupProductionLines));
+
+        if (factory.OrderActive)
+        {
+            RefreshPlan();
+        }
+    }
+
+    // ---------- Order und Plan ----------
+    public void CreateOrder()
+    {
+        if (!factory.CreateOrder())
+        {
+            UndockInfo = "The current order is not finished yet.";
+            return;
+        }
+
+        NotifyOrderChanged();
+        UpdateOrderInfo();
+        UndockInfo = "New order created.";
+    }
+
+    private void RefreshPlan()
+    {
+        factory.PlanNextStep();
+        NotifyOrderChanged();
+        UpdateOrderInfo();
+    }
+
+    private void NotifyOrderChanged()
+    {
+        OnPropertyChanged(nameof(YellowOrder));
+        OnPropertyChanged(nameof(BlueOrder));
+        OnPropertyChanged(nameof(RedOrder));
+        OnPropertyChanged(nameof(GreenOrder));
+        OnPropertyChanged(nameof(YellowDelivered));
+        OnPropertyChanged(nameof(BlueDelivered));
+        OnPropertyChanged(nameof(RedDelivered));
+        OnPropertyChanged(nameof(GreenDelivered));
+    }
+
+    private void UpdateOrderInfo()
+    {
+        if (!factory.HasOrder)
+        {
+            OrderInfo = "No order yet: click \"Order\"";
+        }
+        else if (factory.OrderComplete)
+        {
+            OrderInfo = "Order complete! Click \"Order\" for a new order.";
+        }
+        else if (factory.AllBricksSent)
+        {
+            OrderInfo = "All bricks of the order are on their way to the customers.";
+        }
+        else if (factory.AlleBricks.Count == 0)
+        {
+            OrderInfo = "Click \"Setup Production Lines\" to create the bricks.";
+        }
+        else if (factory.CurrentPlan is PickPlan plan)
+        {
+            OrderInfo = $"Step {factory.CurrentStep}/{factory.TotalOrdered}: Pick {plan.Color} brick from {PlaceText(plan.Station)} and bring to delivery";
+        }
+        else
+        {
+            OrderInfo = $"Step {factory.CurrentStep}/{factory.TotalOrdered}: No brick of a needed color is available right now.";
+        }
+    }
+
+    private static string PlaceText(Parameters.PickStation station)
+    {
+        return station == Parameters.PickStation.recycle
+            ? "the recycle line"
+            : $"{station} production line";
+    }
+
     // ---------- Roboter: Richtungstasten ----------
     public void MoveUp() => Move(Parameters.Direction.up);
     public void MoveDown() => Move(Parameters.Direction.down);
@@ -176,7 +246,6 @@ public partial class MainViewModel : ViewModelBase
     public void MoveRotateLeft() => Rotate(Parameters.Rotation.left);
     public void MoveRotateRight() => Rotate(Parameters.Rotation.right);
 
-    // Step: genau ein Schritt. Move: Richtung merken, der Timer fährt weiter bis Stop.
     private void Move(Parameters.Direction direction)
     {
         if (isStepMode)
@@ -205,7 +274,6 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    // Stop-Taste (■): beendet Dauerbewegung und Dauerdrehung
     public void Stop()
     {
         factory.RobotDirection = Parameters.Direction.stop;
@@ -219,39 +287,44 @@ public partial class MainViewModel : ViewModelBase
         NotifyRobotPositionChanged();
     }
 
-// ---------- GoTo-Tasten ----------
-// Vorläufig: bis der Logistik-Plan die Station vorgibt, geht jeder Klick zur nächsten Station
-private Parameters.PickStation pickStation = Parameters.PickStation.yellow;
+    // ---------- GoTo-Tasten ----------
+    public void GoToPickUp()
+    {
+        Stop();
 
-public void GoToPickUp()
-{
-    Stop();                                    // laufende Dauerbewegung beenden
-    bool ok = factory.GoToLine(pickStation);   // Roboter vor die Linie setzen
+        PickPlan? plan = factory.EnsurePlan();
+        UpdateOrderInfo();
 
-    UndockInfo = ok
-        ? $"Robot at the {pickStation} line: drive forward to dock the brick."
-        : "Robot cannot go there (blocked).";
+        if (plan == null)
+        {
+            UndockInfo = factory.HasOrder
+                ? "There is nothing to pick up right now."
+                : "No order yet: click \"Order\" first.";
+            return;
+        }
 
-    // nächste Station für den nächsten Klick
-    pickStation = pickStation == Parameters.PickStation.recycle
-        ? Parameters.PickStation.yellow
-        : pickStation + 1;
+        bool ok = factory.GoToLine(plan.Value.Station);
 
-    NotifyRobotPositionChanged();
-}
+        UndockInfo = ok
+            ? $"Robot at the {plan.Value.Station} line: drive forward to dock the brick."
+            : "Robot cannot go there (blocked).";
 
-public void GoToDelivery()
-{
-    Stop();
-    bool ok = factory.GoToDelivery();
+        NotifyRobotPositionChanged();
+    }
 
-    UndockInfo = ok
-        ? "Robot at the delivery line: undock the brick."
-        : "Robot cannot go there (blocked).";
+    public void GoToDelivery()
+    {
+        Stop();
+        bool ok = factory.GoToDelivery();
 
-    NotifyRobotPositionChanged();
-}
-    // Undock-Taste: lässt den Stein los, aber nur auf der Lieferlinie. Das Ergebnis wird angezeigt.
+        UndockInfo = ok
+            ? "Robot at the delivery line: undock the brick."
+            : "Robot cannot go there (blocked).";
+
+        NotifyRobotPositionChanged();
+    }
+
+    // ---------- Undock ----------
     public void Undock()
     {
         Parameters.UndockResult result = factory.Undock();
@@ -260,59 +333,24 @@ public void GoToDelivery()
         {
             Parameters.UndockResult.ToCustomer => "Undocking successful: the brick is sent to the customers.",
             Parameters.UndockResult.ToRecycle => "Undocking successful: the brick is defective and sent to recycling.",
+            Parameters.UndockResult.NotNeeded => "This color is not needed for the order. The brick is sent to recycling.",
+            Parameters.UndockResult.NoOrder => "There is no active order. Click \"Order\" first.",
             Parameters.UndockResult.NoBrick => "No brick available to undock.",
             Parameters.UndockResult.NotOnDeliveryLine => "Undocking is only possible on the delivery line.",
             _ => ""
         };
 
-        if (result == Parameters.UndockResult.ToCustomer || result == Parameters.UndockResult.ToRecycle)
+        bool brickLosgelassen = result == Parameters.UndockResult.ToCustomer
+                             || result == Parameters.UndockResult.ToRecycle
+                             || result == Parameters.UndockResult.NotNeeded;
+
+        if (brickLosgelassen)
         {
             deliveryTimer.Start();
+            RefreshPlan();
         }
 
         NotifyRobotPositionChanged();
-    }
-
-    // Steine auf der Lieferlinie fahren; wenn keiner mehr unterwegs ist, hält der Timer an
-    private void DeliveryTimer_Tick(object? sender, EventArgs e)
-    {
-        bool aktiv = factory.LogisticsBewegen();
-        NotifyLegoBricksPositionChanged();
-
-        if (!aktiv)
-        {
-            deliveryTimer.Stop();
-        }
-    }
-
-    private void Factory_BrickDelivered(LegoBrick brick)
-    {
-        switch (brick.Color)
-        {
-            case Parameters.LegoColor.yellow:
-                yellowDelivered++;
-                OnPropertyChanged(nameof(YellowDelivered));
-                break;
-            case Parameters.LegoColor.blue:
-                blueDelivered++;
-                OnPropertyChanged(nameof(BlueDelivered));
-                break;
-            case Parameters.LegoColor.red:
-                redDelivered++;
-                OnPropertyChanged(nameof(RedDelivered));
-                break;
-            case Parameters.LegoColor.green:
-                greenDelivered++;
-                OnPropertyChanged(nameof(GreenDelivered));
-                break;
-        }
-
-        OrderInfo = $"Brick delivered ({brick.Color})";
-    }
-
-    private void Factory_BrickRecycled(LegoBrick brick)
-    {
-        OrderInfo = $"Brick ({brick.Color}) arrived at the recycling line";
     }
 
     private void RobotTimer_Tick(object? sender, EventArgs e)
@@ -330,7 +368,35 @@ public void GoToDelivery()
         NotifyRobotPositionChanged();
     }
 
-    // Roboter und (getragene) Steine neu zeichnen
+    private void DeliveryTimer_Tick(object? sender, EventArgs e)
+    {
+        bool aktiv = factory.LogisticsBewegen();
+        NotifyLegoBricksPositionChanged();
+
+        if (!aktiv)
+        {
+            deliveryTimer.Stop();
+        }
+    }
+
+    // ---------- Ereignisse der Factory ----------
+    private void Factory_BrickDelivered(Parameters.LegoColor color)
+    {
+        UndockInfo = $"Brick delivered ({color}).";
+        RefreshPlan();
+    }
+
+    private void Factory_BrickRecycled(LegoBrick brick)
+    {
+        UndockInfo = $"Brick ({brick.Color}) arrived at the recycling line.";
+        RefreshPlan();
+    }
+
+    private void Factory_RecycleLineFull(LegoBrick brick)
+    {
+        UndockInfo = $"Recycling line is full ({Parameters.bricksPerLine} of {Parameters.bricksPerLine}). The brick waits until a place is free.";
+    }
+
     private void NotifyRobotPositionChanged()
     {
         OnPropertyChanged(nameof(RobotX));
@@ -339,6 +405,4 @@ public void GoToDelivery()
         OnPropertyChanged(nameof(PositionText));
         NotifyLegoBricksPositionChanged();
     }
-
-   
 }

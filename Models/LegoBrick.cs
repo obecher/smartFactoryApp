@@ -84,5 +84,7 @@ namespace MyAvaloniaApp.Models
         {
             return $"{Color} {Size} bei ({X:F1}, {Y:F1}), Status: {Status}";
         }
+        public bool WartetAufRecycling { get; set; }
     }
+    
 }

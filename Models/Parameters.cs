@@ -62,7 +62,9 @@ public class Parameters
         NoBrick = 0,            // der Roboter trägt nichts
         NotOnDeliveryLine = 1,  // Undock ist nur auf der Lieferlinie erlaubt
         ToCustomer = 2,         // erfolgreich, Stein ist in Ordnung und geht zum Kunden
-        ToRecycle = 3           // erfolgreich, Stein ist defekt und geht zum Recycling
+        ToRecycle = 3,           // erfolgreich, Stein ist defekt und geht zum Recycling
+        NoOrder = 4,            // neu: es gibt keine aktive Bestellung
+        NotNeeded = 5           // neu: Farbe wird nicht (mehr) gebraucht, Stein geht zum 
     }
 
     // ---- Bewegung des Roboters ----

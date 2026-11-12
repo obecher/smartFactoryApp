@@ -15,18 +15,21 @@ public class Factory
     private ProductionLine toRecycleLine;       // Pfeil-Feld links neben der Lieferlinie
     private ProductionLine toCustomerLine;      // Pfeil-Feld rechts neben der Lieferlinie
 
+    private Logistics logistics = new Logistics();
+
     // alle Linien (Hindernisse für den Roboter) und alle Steine (greifbar)
     private List<ProductionLine> productionLines = new List<ProductionLine>();
     private List<LegoBrick> allBricks = new List<LegoBrick>();
 
     // Jeder zweite Stein ist defekt: abwechselnd Kunde, Recycling, Kunde, Recycling, ...
-    private bool naechsterZumRecycling = false;
+    private Random random = new Random();
 
     // Ein Stein ist beim Kunden angekommen (und wurde als Ersatz neu "produziert")
     public event Action<LegoBrick>? BrickDelivered;
 
     // Ein defekter Stein ist auf der Recyclinglinie angekommen
     public event Action<LegoBrick>? BrickRecycled;
+    public event Action<LegoBrick>? RecycleLineFull;
 
     // ---- Roboter ----
     public double RobotX => robot.X;
@@ -64,6 +67,18 @@ public class Factory
     public double ProductionDeliveryY => productionDelivery.Y;
     public double ProductionDeliveryAngle => productionDelivery.Angle;
 
+// ---- Bestellung und Plan ----
+public bool HasOrder => logistics.HasOrder;
+public bool OrderActive => logistics.OrderActive;
+public bool OrderComplete => logistics.OrderComplete;
+public bool AllBricksSent => logistics.AllBricksSent;
+public int TotalOrdered => logistics.TotalOrdered;
+public int CurrentStep => logistics.CurrentStep;
+public PickPlan? CurrentPlan => logistics.NextPick;
+
+public int GetOrder(Parameters.LegoColor color) => logistics.GetOrder(color);
+public int GetDelivered(Parameters.LegoColor color) => logistics.GetDelivered(color);
+
     // ---- Legosteine ----
     public IReadOnlyList<LegoBrick> RedBricks => productionRed.Bricks;
     public IReadOnlyList<LegoBrick> BlueBricks => productionBlue.Bricks;
@@ -97,17 +112,36 @@ public class Factory
         productionLines.Add(toRecycleLine);
         productionLines.Add(toCustomerLine);
 
-        allBricks.AddRange(productionRed.Bricks);
-        allBricks.AddRange(productionBlue.Bricks);
-        allBricks.AddRange(productionYellow.Bricks);
-        allBricks.AddRange(productionGreen.Bricks);
-
         robot = new Robot(ViewParameters.RobotPose, ViewParameters.Borders);
         robot.ProductionLines = productionLines;
         robot.Bricks = allBricks;
         robot.DeliveryLine = productionDelivery;
     }
+    // Button "Order": würfelt eine Bestellung und plant gleich den ersten Stein
+public bool CreateOrder()
+{
+    bool neu = logistics.CreateRandomOrder();
+    if (neu) logistics.PlanNextStep(allBricks);
+    return neu;
+}
 
+public PickPlan? PlanNextStep() => logistics.PlanNextStep(allBricks);
+public PickPlan? EnsurePlan() => logistics.EnsurePlan(allBricks);
+
+public void SetupProductionLines()
+{
+    if (allBricks.Count > 0) return;   // nur einmal
+
+    productionRed.CreateBricks();
+    productionBlue.CreateBricks();
+    productionYellow.CreateBricks();
+    productionGreen.CreateBricks();
+
+    allBricks.AddRange(productionRed.Bricks);
+    allBricks.AddRange(productionBlue.Bricks);
+    allBricks.AddRange(productionYellow.Bricks);
+    allBricks.AddRange(productionGreen.Bricks);
+}
     public void RobotBewegen(Parameters.Direction direction, double distance) => robot.Bewegen(direction, distance);
     public void RobotDrehen(Parameters.Rotation rotation, double degrees) => robot.Drehen(rotation, degrees);
     public void RobotWinkelZuruecksetzen() => robot.ResetRotation();
@@ -137,22 +171,33 @@ public class Factory
             return Parameters.UndockResult.NotOnDeliveryLine;
         }
 
-        LegoBrick brick = robot.Undock()!;
+// Ohne aktive Bestellung gibt es nichts zu liefern. Der Stein bleibt am Greifer.
+if (!logistics.OrderActive)
+{
+    return Parameters.UndockResult.NoOrder;
+}
 
-        Parameters.UndockResult result;
-        if (naechsterZumRecycling)
-        {
-            brick.ZumRecycling(productionDelivery);
-            result = Parameters.UndockResult.ToRecycle;
-        }
-        else
-        {
-            brick.ZumKunden(productionDelivery);
-            result = Parameters.UndockResult.ToCustomer;
-        }
+LegoBrick brick = robot.Undock()!;
 
-        naechsterZumRecycling = !naechsterZumRecycling;
-        return result;
+// 1. Wird die Farbe gebraucht? Wenn nicht: Recycling (als Reserve)
+if (!logistics.IsNeeded(brick.Color))
+{
+    brick.ZumRecycling(productionDelivery);
+    return Parameters.UndockResult.NotNeeded;
+}
+
+// 2. Qualitätskontrolle: 50 % defekt
+bool defekt = random.Next(2) == 0;
+if (defekt)
+{
+    brick.ZumRecycling(productionDelivery);
+    return Parameters.UndockResult.ToRecycle;
+}
+
+// 3. In Ordnung: zum Kunden. Ab jetzt zählt der Stein als "unterwegs".
+logistics.BrickSent(brick.Color);
+brick.ZumKunden(productionDelivery);
+return Parameters.UndockResult.ToCustomer;
     }
 
     // Nummer des ersten freien Platzes auf der Recyclinglinie, -1 wenn alle belegt sind
@@ -217,12 +262,18 @@ public class Factory
                         brick.SetzeMitte(pose.X, pose.Y, pose.Angle);
                         brick.Status = Parameters.BrickStatus.OnRecycleLine;
                         brick.RecyclePlatz = platz;
+                        brick.WartetAufRecycling = false; 
                         BrickRecycled?.Invoke(brick);
                     }
                     else
                     {
-                        // Kein Platz frei: der Stein wartet am Ende des Pfeils
-                        brick.SetzeMitte(toRecycleLine.X, brick.Y + brick.Height / 2.0, 0);
+                    brick.SetzeMitte(toRecycleLine.X, brick.Y + brick.Height / 2.0, 0);
+
+                    if (!brick.WartetAufRecycling)
+                        {
+                        brick.WartetAufRecycling = true;
+                        RecycleLineFull?.Invoke(brick);   // nur einmal melden, nicht bei jedem Tick
+                        }
                     }
                 }
             }

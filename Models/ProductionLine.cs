@@ -44,10 +44,6 @@ public class ProductionLine
         // Start in der Mitte der Hin- und Herbewegung: die Steine pendeln um ihre Startposition
         tickCount = Parameters.stepsPerDirection / 2;
 
-        if (color != null)
-        {
-            CreateBricks(color.Value);
-        }
     }
 
     public ProductionLine(Pose pose, Parameters.LegoColor color)
@@ -85,17 +81,22 @@ public class ProductionLine
         return new Pose(centerX + lx * cos - ly * sin, centerY + lx * sin + ly * cos, angle);
     }
 
-    private void CreateBricks(Parameters.LegoColor color)
-    {
-        Parameters.LegoSize size = Parameters.LegoSize.medium;
+public void CreateBricks()
+{
+    if (bricks.Count > 0) return;   // nur einmal
 
-        for (int i = 0; i < Parameters.bricksPerLine; i++)
-        {
-            LegoBrick brick = new LegoBrick(SlotPose(i, size), color, size);
-            brick.SetzeHeimat(this);
-            bricks.Add(brick);
-        }
+    Parameters.LegoSize size = Parameters.LegoSize.medium;
+
+    for (int i = 0; i < Parameters.bricksPerLine; i++)
+    {
+        // Next(4) liefert 0, 1, 2 oder 3, jeweils gleich wahrscheinlich
+        Parameters.LegoColor farbe = alleFarben[random.Next(alleFarben.Length)];
+
+        LegoBrick brick = new LegoBrick(SlotPose(i, size), farbe, size);
+        brick.SetzeHeimat(this);
+        bricks.Add(brick);
     }
+}
 
     // Ein Schritt der Pendelbewegung entlang der Längsachse der Linie
     public void Bewegen()
@@ -127,6 +128,7 @@ public class ProductionLine
         int uy = Math.Sign((int)Math.Round(Math.Sin(angle * Math.PI / 180.0)));
 
         brick.SetzePose(brick.HeimX + ux * versatz, brick.HeimY + uy * versatz, angle);
+        brick.Color = alleFarben[random.Next(alleFarben.Length)];   // neuer Stein, neue Zufallsfarbe
         brick.Status = Parameters.BrickStatus.OnProductionLine;
         brick.RecyclePlatz = -1;
     }
@@ -157,4 +159,13 @@ public class ProductionLine
             _ => Parameters.Direction.stop
         };
     }
+    // Ein Zufallsgenerator für alle Linien, und die vier möglichen Farben
+private static readonly Random random = new Random();
+private static readonly Parameters.LegoColor[] alleFarben =
+{
+    Parameters.LegoColor.yellow,
+    Parameters.LegoColor.blue,
+    Parameters.LegoColor.red,
+    Parameters.LegoColor.green
+};
 }

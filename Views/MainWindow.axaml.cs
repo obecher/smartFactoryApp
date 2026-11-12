@@ -45,4 +45,6 @@ public partial class MainWindow : Window
 
     private void SetupProductionLines_Click(object? sender, RoutedEventArgs e) { ViewModel?.SetupProductionLines(); }
 
+    private void Order_Click(object? sender, RoutedEventArgs e) { ViewModel?.CreateOrder(); }
+
 }

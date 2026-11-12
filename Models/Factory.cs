@@ -76,6 +76,19 @@ public int TotalOrdered => logistics.TotalOrdered;
 public int CurrentStep => logistics.CurrentStep;
 public PickPlan? CurrentPlan => logistics.NextPick;
 
+// Der Stein, den der Roboter gerade trägt (null = keiner)
+public LegoBrick? DockedBrick
+{
+    get
+    {
+        foreach (LegoBrick brick in allBricks)
+        {
+            if (brick.Gedockt) return brick;
+        }
+        return null;
+    }
+}
+
 public int GetOrder(Parameters.LegoColor color) => logistics.GetOrder(color);
 public int GetDelivered(Parameters.LegoColor color) => logistics.GetDelivered(color);
 
@@ -241,10 +254,11 @@ return Parameters.UndockResult.ToCustomer;
                 // Mitte hat das rechte Ende des Kunden-Pfeils erreicht: der Stein verschwindet und
                 // taucht als "neu produzierter" Stein wieder auf seinem alten Platz auf
                 if (brick.X + brick.Width / 2.0 >= toCustomerLine.X + toCustomerLine.Width)
-                {
-                    brick.Heimlinie!.Heimkehr(brick);
-                    BrickDelivered?.Invoke(brick);
-                }
+                    {
+                        logistics.BrickDelivered(brick.Color);   // NEU: zählt Delivered +1, Underway -1
+                             brick.Heimlinie!.Heimkehr(brick);
+                            BrickDelivered?.Invoke(brick);
+                        }
             }
             else if (brick.Status == Parameters.BrickStatus.ToRecycle)
             {

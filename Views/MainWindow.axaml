@@ -143,8 +143,8 @@
 
             <!-- Anzeige der gelieferten Steine pro Farbe -->
             
-            <Button x:Name="Order" Canvas.Left="630" Canvas.Top="8" Width="80" Height="40"
-                    Content="Order" HorizontalContentAlignment="Center" />
+           <Button x:Name="Order" Canvas.Left="630" Canvas.Top="8" Width="80" Height="40"
+        Content="Order" HorizontalContentAlignment="Center" Click="Order_Click"/>
             <TextBlock Text="Delivered" FontSize="13" FontWeight="Bold" Foreground="Black" Canvas.Left="801" Canvas.Top="36"/>
             <Border Canvas.Left="630" Canvas.Top="56" Width="74" Height="30" CornerRadius="3" Background="#FFE000">
                 <TextBlock Text="yellow" FontWeight="Bold" Foreground="Black" FontSize="14"
@@ -184,10 +184,12 @@
             </Border>
 
             <!-- Meldungen: Auslieferung und Ergebnis des Undock-Buttons -->
-            <TextBlock Text="{Binding OrderInfo}" Canvas.Left="628" Canvas.Top="262" Width="250"
-                       TextWrapping="Wrap" FontSize="14" Foreground="#1F5F5F"/>
-            <TextBlock Text="{Binding UndockInfo}" Canvas.Left="628" Canvas.Top="296" Width="250"
-                       TextWrapping="Wrap" FontSize="13" Foreground="Black"/>
+            <!-- zwischen Tabelle (endet bei 194) und Buttons (beginnen bei 306) -->
+            <StackPanel Canvas.Left="628" Canvas.Top="195" Width="250" Spacing="6">
+                <TextBlock Text="{Binding OrderInfo}" TextWrapping="Wrap" FontSize="14"
+                           FontWeight="Bold" Foreground="#1F3F8F"/>
+                <TextBlock Text="{Binding UndockInfo}" TextWrapping="Wrap" FontSize="13" Foreground="Black"/>
+            </StackPanel>
 
             <!-- Start / Stop für die Pendelbewegung der Legosteine -->
             <Button x:Name="StartButton" Canvas.Left="628" Canvas.Top="386" Width="120" Height="30"

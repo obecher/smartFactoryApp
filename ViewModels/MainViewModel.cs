@@ -204,6 +204,10 @@ public partial class MainViewModel : ViewModelBase
         {
             OrderInfo = "No order yet: click \"Order\"";
         }
+        else if (factory.DockedBrick is LegoBrick getragen)
+        {
+            OrderInfo = $"Step {factory.CurrentStep}/{factory.TotalOrdered}: Bring the {getragen.Color} brick to delivery";
+        }   
         else if (factory.OrderComplete)
         {
             OrderInfo = "Order complete! Click \"Order\" for a new order.";
@@ -258,6 +262,7 @@ public partial class MainViewModel : ViewModelBase
             factory.RobotDirection = direction;
             robotTimer.Start();
         }
+        UpdateOrderInfo();
     }
 
     private void Rotate(Parameters.Rotation newRotation)
@@ -380,11 +385,11 @@ public partial class MainViewModel : ViewModelBase
     }
 
     // ---------- Ereignisse der Factory ----------
-    private void Factory_BrickDelivered(Parameters.LegoColor color)
-    {
-        UndockInfo = $"Brick delivered ({color}).";
-        RefreshPlan();
-    }
+ private void Factory_BrickDelivered(LegoBrick brick)
+{
+    UndockInfo = $"Brick delivered ({brick.Color}).";
+    RefreshPlan();
+}
 
     private void Factory_BrickRecycled(LegoBrick brick)
     {

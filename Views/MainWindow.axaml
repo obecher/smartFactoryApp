@@ -146,6 +146,28 @@
            <Button x:Name="Order" Canvas.Left="630" Canvas.Top="8" Width="80" Height="40"
         Content="Order" HorizontalContentAlignment="Center" Click="Order_Click"/>
             <TextBlock Text="Delivered" FontSize="13" FontWeight="Bold" Foreground="Black" Canvas.Left="801" Canvas.Top="36"/>
+            <!-- Bestellte Anzahl pro Farbe (Spalte links neben Delivered) -->
+            <TextBlock Text="Ordered" FontSize="13" FontWeight="Bold" Foreground="Black" Canvas.Left="731" Canvas.Top="36"/>
+            <Border Canvas.Left="724" Canvas.Top="56" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding YellowOrder}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+            <Border Canvas.Left="724" Canvas.Top="92" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding BlueOrder}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+            <Border Canvas.Left="724" Canvas.Top="128" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding RedOrder}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+            <Border Canvas.Left="724" Canvas.Top="164" Width="70" Height="30" CornerRadius="3"
+                    BorderBrush="Gray" BorderThickness="1" Background="#F7F7EC">
+                <TextBlock Text="{Binding GreenOrder}" Foreground="Black" FontSize="14"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
             <Border Canvas.Left="630" Canvas.Top="56" Width="74" Height="30" CornerRadius="3" Background="#FFE000">
                 <TextBlock Text="yellow" FontWeight="Bold" Foreground="Black" FontSize="14"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
